@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id        String   @id @default(uuid()) @map("id")
+  code      String   @unique
+  title     String
+  author    String
+  stock     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  borrowingRecord BorrowingRecord[]
+
+  @@map("books")
+}
+
+model Member {
+  id              String    @id @default(uuid()) @map("id")
+  code            String    @unique
+  name            String
+  penaltyExpireAt DateTime? @map("penalty_expire_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
+
+  borrowingRecord BorrowingRecord[]
+
+  @@map("members")
+}
+
+model BorrowingRecord {
+  id         String    @id @default(uuid()) @map("id")
+  memberCode String    @map("member_code")
+  bookCode   String    @map("book_code")
+  borrowedAt DateTime  @default(now()) @map("borrowed_at")
+  returnedAt DateTime? @map("returned_at")
+  penalty    Boolean   @default(false)
+
+  member Member @relation(fields: [memberCode], references: [code], onDelete: Cascade, onUpdate: Cascade)
+  book   Book   @relation(fields: [bookCode], references: [code], onDelete: Cascade, onUpdate: Cascade)
+}
